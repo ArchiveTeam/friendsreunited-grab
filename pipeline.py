@@ -58,7 +58,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20160205.02"
+VERSION = "20160205.03"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'friendsreunited'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -260,9 +260,9 @@ class WgetArgs(object):
 project = Project(
     title="friendsreunited",
     project_html="""
-        <img class="project-logo" alt="Project logo" src="http://archiveteam.org/images/5/55/Myvip_logo.png" height="50px" title=""/>
-        <h2>myvip.com <span class="links"><a href="http://myvip.com/">Website</a> &middot; <a href="http://tracker.archiveteam.org/myvip/">Leaderboard</a></span></h2>
-        <p>Save everything from MyVIP!</p>
+        <img class="project-logo" alt="Project logo" src="http://archiveteam.org/images/5/5e/Friends-reunited-logo-2012.jpg" height="50px" title=""/>
+        <h2>friendsreunited.co.uk <span class="links"><a href="http://www.friendsreunited.co.uk/">Website</a> &middot; <a href="http://tracker.archiveteam.org/friendsreunited/">Leaderboard</a></span></h2>
+        <p>Archiving Friends Reunited.</p>
     """
 )
 
