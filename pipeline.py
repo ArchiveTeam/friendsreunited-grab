@@ -58,7 +58,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20160124.01"
+VERSION = "20160205.01"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'friendsreunited'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -184,7 +184,7 @@ class WgetArgs(object):
             "--page-requisites",
             "--timeout", "30",
             "--tries", "inf",
-            "--domains", "friendsreunited.com",
+            "--domains", "friendsreunited.com,friendsreunited.co.uk",
             "--span-hosts",
             "--waitretry", "30",
             "--warc-file", ItemInterpolation("%(item_dir)s/%(warc_file_base)s"),
@@ -202,7 +202,7 @@ class WgetArgs(object):
         item['item_type'] = item_type
         item['item_value'] = item_value
         
-        assert item_type in ('group', '100discussions')
+        assert item_type in ('group_com', 'group_co_uk', '100discussions_com', '100discussions_co_uk')
 
         if os.path.isfile('account'):
             with open('account', 'r') as file:
@@ -210,21 +210,37 @@ class WgetArgs(object):
         else:
             raise Exception('Please add the e-mail to the first line and the password to the second line in a file named "account".')
         
-        if item_type == 'group':
+        if item_type == 'group_com':
             session = requests.Session()
             sessionlogin = session.post('http://www.friendsreunited.com/Account/LogOn', data={'ReturnUrl': '', 'UserName': myemail, 'Password': mypassword, 'RememberMe': 'true'})
             if '/Home/Login' in sessionlogin.url:
                 raise Exception('Something went wrong while login in! ABORTING')
             wget_args.append(session.get('http://www.friendsreunited.com/{0}'.format(item_value)).url)
             wget_args.append('http://www.friendsreunited.com/{0}'.format(item_value))
-        elif item_type == '100discussions':
+        elif item_type == 'group_co_uk':
+            session = requests.Session()
+            sessionlogin = session.post('http://www.friendsreunited.co.uk/Account/LogOn', data={'ReturnUrl': '', 'UserName': myemail, 'Password': mypassword, 'RememberMe': 'true'})
+            if '/Home/Login' in sessionlogin.url:
+                raise Exception('Something went wrong while login in! ABORTING')
+            wget_args.append(session.get('http://www.friendsreunited.co.uk/{0}'.format(item_value)).url)
+            wget_args.append('http://www.friendsreunited.co.uk/{0}'.format(item_value))
+        elif item_type == '100discussions_com':
             suffixes = string.digits
             for url in ['http://www.friendsreunited.com/Discussion/{0}{1}{2}'.format(item_value, a, b) for a in suffixes for b in suffixes]:
+                wget_args.append(url)
+        elif item_type == '100discussions_co_uk':
+            suffixes = string.digits
+            for url in ['http://www.friendsreunited.co.uk/Discussion/{0}{1}{2}'.format(item_value, a, b) for a in suffixes for b in suffixes]:
                 wget_args.append(url)
         else:
             raise Exception('Unknown item')
 
-        os.system("wget --save-cookies cookies.txt --keep-session-cookies --post-data 'ReturnUrl=&UserName=" + myemail + "&Password=" + mypassword + "&RememberMe=true' --referer http://www.friendsreunited.com/ http://www.friendsreunited.com/Account/LogOn")
+        if item_type.endswith('_co_uk'):
+            tld = 'co.uk'
+        elif item_type.endswith('_com'):
+            tld = 'com'
+
+        os.system("wget --save-cookies cookies.txt --keep-session-cookies --post-data 'ReturnUrl=&UserName=" + myemail + "&Password=" + mypassword + "&RememberMe=true' --referer http://www.friendsreunited."+tld+"/ http://www.friendsreunited."+tld+"/Account/LogOn")
         os.remove('LogOn')
         
         if 'bind_address' in globals():

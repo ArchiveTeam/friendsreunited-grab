@@ -56,10 +56,10 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
   local url = urlpos["url"]["url"]
   local html = urlpos["link_expect_html"]
 
-  url = string.gsub(url, "friendsreunited.com:80/", "friendsreunited.com/")
+  url = string.gsub(url, "friendsreunited.(co[^:]+):80/", "friendsreunited.%1/")
  
-  if (downloaded[url] ~= true and addedtolist[url] ~= true) and ((item_type == '100discussions' and string.match(url, item_value.."[0-9][0-9]") and not string.match(url, item_value.."[0-9][0-9][0-9]")) or html == 0 or string.match(url, "^https?://[^/]*friendsreunited%.com/[pP]rofile") or check_item_ids(url) == true or string.match(url, "https?://[^/]*assetstorage%.co%.uk") or (item_type ~= "100discussions" and (string.match(url, item_id_match) or string.match(url, "^https?://[^/]*friendsreunited%.com/[dD]iscussion/[vV]iew")))) then
-    if string.match(url, "^https?://[^/]*friendsreunited%.com/[pP]rofile/") then
+  if (downloaded[url] ~= true and addedtolist[url] ~= true) and ((item_type == '100discussions' and string.match(url, item_value.."[0-9][0-9]") and not string.match(url, item_value.."[0-9][0-9][0-9]")) or html == 0 or string.match(url, "^https?://[^/]*friendsreunited%.co[^/]+/[pP]rofile") or check_item_ids(url) == true or string.match(url, "https?://[^/]*assetstorage%.co%.uk") or (item_type ~= "100discussions" and (string.match(url, item_id_match) or string.match(url, "^https?://[^/]*friendsreunited%.co[^/]+/[dD]iscussion/[vV]iew")))) then
+    if string.match(url, "^https?://[^/]*friendsreunited%.co[^/]+/[pP]rofile/") then
       profiles[url] = true
       return false
     else
@@ -81,9 +81,9 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   
   local function check(urla)
     local url = string.match(urla, "^([^#]+)")
-    url = string.gsub(url, "friendsreunited.com:80/", "friendsreunited.com/")
-    if (downloaded[url] ~= true and addedtolist[url] ~= true) and ((item_type == '100discussions' and string.match(url, item_value.."[0-9][0-9]") and not string.match(url, item_value.."[0-9][0-9][0-9]")) or string.match(url, "^https?://[^/]*friendsreunited%.com/[pP]rofile/") or check_item_ids == true or string.match(url, "https?://[^/]*assetstorage%.co%.uk") or (item_type ~= "100discussions" and (string.match(url, item_id_match) or string.match(url, "^https?://[^/]*friendsreunited%.com/[dD]iscussion/[vV]iew")))) then
-      if string.match(url, "^https?://[^/]*friendsreunited%.com/[pP]rofile/") then
+    url = string.gsub(url, "friendsreunited.(co[^:]+):80/", "friendsreunited.%1/")
+    if (downloaded[url] ~= true and addedtolist[url] ~= true) and ((item_type == '100discussions' and string.match(url, item_value.."[0-9][0-9]") and not string.match(url, item_value.."[0-9][0-9][0-9]")) or string.match(url, "^https?://[^/]*friendsreunited%.co[^/]+/[pP]rofile/") or check_item_ids == true or string.match(url, "https?://[^/]*assetstorage%.co%.uk") or (item_type ~= "100discussions" and (string.match(url, item_id_match) or string.match(url, "^https?://[^/]*friendsreunited%.co[^/]+/[dD]iscussion/[vV]iew")))) then
+      if string.match(url, "^https?://[^/]*friendsreunited%.co[^/]+/[pP]rofile/") then
         profiles[url] = true
       elseif string.match(url, "&amp;") then
         add_item_ids(url)
@@ -120,7 +120,7 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     check(newurl)
   end
   
-  if string.match(url, "^https?://[^/]*friendsreunited%.com") then
+  if string.match(url, "^https?://[^/]*friendsreunited%.co") then
     html = read_file(file)
     for newurl in string.gmatch(html, '([^"]+)') do
       checknewurl(newurl)
@@ -136,6 +136,20 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
     end
     for newurl in string.gmatch(html, 'href="([^"]+)"') do
       checknewshorturl(newurl)
+    end
+    if string.match(url, "https?://[^/]*friendsreunited%.co[^/]+/[^/]+/Memory/[^%?]*%?nullableid=") then
+      local newurl = string.gsub(url, "(https?://[^/]*friendsreunited%.co[^/]+)/([^/]+)/Memory/[^%?]*%?nullableid=(.+)", "%1/Media?nullableid=%3&friendly=%2")
+      if downloaded[newurl] ~= true and addedtolist[newurl] ~= true then
+        addedtolist[newurl] = true
+        table.insert(urls, { url=newurl })
+      end
+    end
+    if string.match(url, "https?://[^/]*friendsreunited%.co[^/]+/Memory/[^%?]*%?nullableid=") then
+      local newurl = string.gsub(url, "(https?://[^/]*friendsreunited%.co[^/]+)/Memory/[^%?]*%?nullableid=", "%1/Media?nullableid=")
+      if downloaded[newurl] ~= true and addedtolist[newurl] ~= true then
+        addedtolist[newurl] = true
+        table.insert(urls, { url=newurl })
+      end
     end
     if string.match(url, "page=[0-9]+") then
       pagenum = string.match(url, "page=([0-9]+)")
@@ -178,7 +192,7 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
   end
   
   if status_code >= 500 or
-    (status_code >= 400 and status_code ~= 404 and status_code ~= 403 and status_code ~= 400) or
+    (status_code >= 400 and status_code ~= 404) or
     status_code == 0 then
     io.stdout:write("Server returned "..http_stat.statcode.." ("..err.."). Sleeping.\n")
     io.stdout:flush()
@@ -188,7 +202,7 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
       io.stdout:write("\nI give up...\n")
       io.stdout:flush()
       tries = 0
-      if string.match(url["url"], "^https?://[^/]*friendsreunited%.com") or string.match(url["url"], "https?://[^/]*assetstorage%.co%.uk") then
+      if string.match(url["url"], "^https?://[^/]*friendsreunited%.co") or string.match(url["url"], "https?://[^/]*assetstorage%.co%.uk") then
         return wget.actions.ABORT
       else
         return wget.actions.EXIT
